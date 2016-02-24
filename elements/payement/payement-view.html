@@ -1,0 +1,150 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../../bower_components/chart-elements/chart-elements.html">
+
+<dom-module id="payement-view">
+
+  <template>
+
+    <style>
+      :host {
+        display: block;
+        -webkit-user-select: none; /* Chrome/Safari */        
+        -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* IE10+ */
+        /* Rules below not implemented in browsers yet */
+        -o-user-select: none;
+        user-select: none;
+              
+      }
+
+    </style>
+
+    <chart-doughnut data="[[data]]" ></chart-doughnut>
+    
+  </template>
+  <script>
+    Polymer({
+      is: 'payement-view',
+      properties: {
+        elements: Array,
+        data : Array
+      },
+      observers: [
+        'loadInfos(elements.*)'
+      ],          
+      loadInfos : function() {
+
+        this.set('data', [
+          {
+            value: 0,
+            color:"#F7464A",
+            highlight: "#FF5A5E",
+            label: "carte bancaire",
+            type : "cb"
+          },
+          {
+            value: 0,
+            color: "#46BFBD",
+            highlight: "#5AD3D1",
+            label: "Money",
+            type : "money"
+          },
+          {
+            value: 0,
+            color: "#FDB45C",
+            highlight: "#FFC870",
+            label: "Ticket",
+            type : "ticket"
+          },
+          {
+            value: 0,
+            color: "#29A3EC",
+            highlight: "#29A3EC",
+            label: "Free",
+            type : "free"
+          }
+        ]);
+
+
+        _.each(this.elements, _.bind(function(shift, index) {
+          _.each(shift, _.bind(function(data, index) {
+            if(typeof data == 'object') {
+              this.addInfos(data);
+            }
+          },this));
+        },this));
+
+      },
+      addInfos : function(data) {
+
+        if(data.money) {
+          this.changeElement({
+            target : this.data,
+            searchLabel : 'type',
+            search : 'money',
+            changeLabel : 'value',
+            change : data.money,
+            changeType : '+'});
+        }
+
+        if(data.cb) {
+          this.changeElement({
+            target : this.data,
+            searchLabel : 'type',
+            search : 'cb',
+            changeLabel : 'value',
+            change : data.cb,
+            changeType : '+'});
+        }
+
+        if(data.ticket) {
+          this.changeElement({
+            target : this.data,
+            searchLabel : 'type',
+            search : 'ticket',
+            changeLabel : 'value',
+            change : data.ticket,
+            changeType : '+'});
+        }
+
+        if(data.free) {
+          this.changeElement({
+            target : this.data,
+            searchLabel : 'type',
+            search : 'free',
+            changeLabel : 'value',
+            change : data.free,
+            changeType : '+'});
+        }        
+
+      },
+      changeElement : function(params) {
+        $.each(params.target, function() {
+            if (this[params.searchLabel] == params.search) {
+
+              if(params.changeType) {
+                if(params.changeType == '+') {
+                  this[params.changeLabel] = parseFloat(this[params.changeLabel])+parseFloat(params.change);
+                }
+                if(params.changeType == '-') {
+                  this[params.changeLabel] = parseFloat(this[params.changeLabel])-parseFloat(params.change);
+                }
+              } else {
+                this[params.changeLabel] = params.change;
+              }
+
+                
+            }
+        });
+      },   
+    });
+  </script>
+</dom-module>

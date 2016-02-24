@@ -1,0 +1,403 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../../bower_components/chart-elements/chart-elements.html">
+
+<dom-module id="stat-item-view">
+
+  <template>
+
+    <style>
+      :host {
+        display: block;
+        -webkit-user-select: none; /* Chrome/Safari */        
+        -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* IE10+ */
+        /* Rules below not implemented in browsers yet */
+        -o-user-select: none;
+        user-select: none;
+        padding:0 5px;
+        background: #FFF;        
+      } 
+
+      .chartItem {
+        padding:10px;
+      }
+
+      chart-line {
+        width:100%;
+        height: 300px;
+      }
+
+      chart-doughnut {
+        width: 300px;
+        height: 300px;
+      }
+
+      @media screen and (max-width: 640px) {
+
+        chart-line {
+          width:100%;
+          height: 200px;
+        }
+
+        chart-doughnut {
+          width: 200px;
+          height: 200px;
+        }
+
+        .listBloc {
+          height: 200px !important;
+        }
+
+      }
+
+    .listBloc {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 10px;
+      background: #FFF;
+      flex-direction: column;
+      float: right;
+      height: 300px;
+    }
+
+    .bloc{
+      height: 25px;
+      width: 25px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #FFF;
+      float: left;
+      margin-right: 5px;
+      border-radius: 50%;
+    }
+
+    .blocItem {
+      display: flex;
+      height: 30px;
+      align-items: center;        
+    }
+
+    </style>
+
+
+
+    <div class="chartItem">
+      <chart-line data="[[data]]"></chart-line>
+    </div>
+
+    <div class="chartItem">
+      <chart-doughnut data="[[datadoughnut]]" ></chart-doughnut>
+    <div class="listBloc">
+      <template is="dom-repeat" items="{{datadoughnut}}" >
+      <div class="blocItem">
+        <div class="bloc" style="background:{{item.color}}" >{{item.value}}</div><div>{{item.label}}</div>
+      </div>
+      </template>
+    </div>      
+    </div>
+
+  </template>
+  <script>
+    Polymer({
+      is: 'stat-item-view',
+      properties: {
+        elements: Array,
+        data : Array,
+        datadoughnut : Array,
+        searchs : Array            
+      },
+      observers: [
+        //'loadInfos(elements.*)'
+      ],          
+      loadInfos : function() {
+
+        if(!this.searchs) {
+
+        this.searchs = [/*
+          {
+            target : 'list',
+            targetList : 'Blue',
+            color : "rgba(81,100,247,0.8)",
+            colorhighlight : "rgba(81,100,247,1)",          
+            colorfade : "rgba(81,100,247,0.1)"
+          },
+          {
+            target : 'list',
+            targetList : 'Black',
+            color : "rgba(62,62,62,0.8)",
+            colorhighlight : "rgba(62,62,62,1)",            
+            colorfade : "rgba(62,62,62,0.1)"
+          },
+          {
+            target : 'list',
+            targetList : 'Jack',
+            color : "rgba(254,115,15,0.8)",
+            colorhighlight : "rgba(254,115,15,1)",              
+            colorfade : "rgba(254,115,15,0.1)"
+          },
+          {
+            target : 'list',
+            targetList : 'Purple',
+            color : "rgba(175,33,149,0.8)",
+            colorhighlight : "rgba(175,33,149,1)",              
+            colorfade : "rgba(175,33,149,0.1)"
+          }*/
+        ];
+
+        }
+
+        var schedules = [];
+        var list = [];
+
+        this.type = "shift";
+
+        if(this.elements.length > 1) {
+          this.type = "all";
+        }
+
+        _.each(this.elements, _.bind(function(shift, index) {
+
+          if(this.type == 'all') {
+            if(shift && shift.__firebaseKey__ && schedules.indexOf(shift.__firebaseKey__) == -1)  {
+              schedules.push(shift.__firebaseKey__);
+            }
+          }
+
+          _.each(shift, _.bind(function(data, index) {
+            if(typeof data == 'object') {
+
+              if(this.type == 'shift') {
+
+                  if(data && data.schedule && schedules.indexOf(data.schedule) == -1)  {
+                    schedules.push(data.schedule);
+                  }
+              } else {
+                data.shift = shift.__firebaseKey__;
+              }
+
+              list.push(data);
+            }
+          },this));
+
+        },this));
+
+        schedules = _.sortBy(schedules, function(num){ return num; });
+
+        this.datasets = [];
+        this.datadoughnutsets = [];
+
+        _.each(this.searchs, _.bind(function(search){
+
+          this.datasets.push(this.loadDataItem({
+            list : list, 
+            schedules : schedules,
+            target : search.target,
+            targetList : search.targetList,
+            color : search.color,
+            colorfade : search.colorfade,
+            label : search.label
+          }));
+
+          this.datadoughnutsets.push(this.loadDataDoughnutItem({
+            list : list, 
+            schedules : schedules,
+            target : search.target,
+            targetList : search.targetList,
+            color : search.color,
+            colorhighlight : search.colorhighlight,
+            label : search.label            
+          }));
+
+        },this))
+/*
+        var labelsschedules = _.map(schedules, function(data, key){
+          return data.replace("-2016", "");
+        });
+*/
+        this.set('data', {
+          labels: schedules,
+          datasets: this.datasets
+        });
+
+        this.set('datadoughnut', this.datadoughnutsets);
+
+      },
+      loadDataDoughnutItem : function(params) {
+        
+        var collection = [];
+        var total = 0;
+
+        _.each(params.list, _.bind(function(data){
+          var resultTotal = this.getTotalItem(data, params.target, params.targetList);
+          total+=resultTotal;
+        },this), 0);
+  
+        if (params.label) {
+          label = params.label;
+        } else if(params.targetList){
+          label = params.targetList;
+        } else if(params.target){
+          label = params.target;
+        }
+
+        return {
+          value: total,
+          color: params.color,
+          highlight: params.colorhighlight,
+          label: label,
+        };
+      },
+      loadDataItem : function(params) {
+
+        var collection = [];
+
+        _.each(params.schedules, _.bind(function(schedule, index) {
+
+          if(this.type == 'shift') {
+            searchWhere = {schedule : schedule};
+          } else {
+            searchWhere = {shift : schedule};
+          }
+
+          var result = _.where(params.list, searchWhere);
+          var total = 0;
+
+          _.each(result, _.bind(function(data){
+            var resultTotal = this.getTotalItem(data, params.target, params.targetList);
+            total+=resultTotal;
+          },this), 0);
+
+          collection.push(total);
+        },this));
+
+
+        var label = "";
+
+        if (params.label) {
+          label = params.label;
+        } else if(params.targetList){
+          label = params.targetList;
+        } else if(params.target){
+          label = params.target;
+        }
+
+        return {
+            label: label,
+            fillColor: params.colorfade,
+            strokeColor: params.color,
+            pointColor: params.color,
+            pointStrokeColor: "rgba(151,187,205,0)",
+            pointHighlightFill: "rgba(151,187,205,1)",
+            pointHighlightStroke: "rgba(255,255,255,1)",
+            data: collection
+        };
+
+      },
+      getTotalItem : function(data, target, listTarget) {
+        var total = 0;
+
+        if(typeof target == 'object') {
+          _.each(target, function(targetitem) {
+            total += (data[targetitem] ? parseFloat(data[targetitem]) : 0);
+          });
+        } else {
+
+          switch(target) {
+              case 'revenue':
+                  total += (data.cb ? parseFloat(data.cb) : 0);
+                  total += (data.money ? parseFloat(data.money) : 0);
+                  total += (data.ticket ? parseFloat(data.ticket) : 0);
+                  total += (data.free ? parseFloat(data.free) : 0);
+                  break;
+              case 'list':
+                if(listTarget) {
+                  _.each(data.list, function(data) {
+                    if ( data.label.toLowerCase().indexOf(listTarget.toLowerCase()) > -1) {
+                      total += data.nb;
+                    }
+                  });
+                }
+                  break;                
+              default:
+                total += (data[target]? parseFloat(data[target]) : 0);
+          }
+
+        }
+
+        return total;
+      },
+      addInfos : function(data) {
+
+        if(data.money) {
+          this.changeElement({
+            target : this.data,
+            searchLabel : 'type',
+            search : 'money',
+            changeLabel : 'value',
+            change : data.money,
+            changeType : '+'});
+        }
+
+        if(data.cb) {
+          this.changeElement({
+            target : this.data,
+            searchLabel : 'type',
+            search : 'cb',
+            changeLabel : 'value',
+            change : data.cb,
+            changeType : '+'});
+        }
+
+        if(data.ticket) {
+          this.changeElement({
+            target : this.data,
+            searchLabel : 'type',
+            search : 'ticket',
+            changeLabel : 'value',
+            change : data.ticket,
+            changeType : '+'});
+        }
+
+        if(data.free) {
+          this.changeElement({
+            target : this.data,
+            searchLabel : 'type',
+            search : 'free',
+            changeLabel : 'value',
+            change : data.free,
+            changeType : '+'});
+        }        
+
+      },
+      changeElement : function(params) {
+        $.each(params.target, function() {
+            if (this[params.searchLabel] == params.search) {
+
+              if(params.changeType) {
+                if(params.changeType == '+') {
+                  this[params.changeLabel] = parseFloat(this[params.changeLabel])+parseFloat(params.change);
+                }
+                if(params.changeType == '-') {
+                  this[params.changeLabel] = parseFloat(this[params.changeLabel])-parseFloat(params.change);
+                }
+              } else {
+                this[params.changeLabel] = params.change;
+              }
+
+                
+            }
+        });
+      },   
+    });
+  </script>
+</dom-module>
