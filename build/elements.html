@@ -23038,7 +23038,6 @@ X.prototype.Ze=function(a,b){D("Firebase.resetPassword",1,2,arguments.length);sg
 
     .bloc{
       height: 25px;
-      width: 25px;
       font-size: 13px;
       display: flex;
       align-items: center;
@@ -23046,6 +23045,7 @@ X.prototype.Ze=function(a,b){D("Firebase.resetPassword",1,2,arguments.length);sg
       color: #FFF;
       float: left;
       margin-right: 5px;
+      padding: 0 10px;
       border-radius: 50%;
     }
 
@@ -23060,18 +23060,20 @@ X.prototype.Ze=function(a,b){D("Firebase.resetPassword",1,2,arguments.length);sg
 
 
     <div class="chartItem">
-      <chart-line data="[[data]]"></chart-line>
+      <chart-line data="[[data]]" hidden="{{!schedules.length}}"></chart-line>
     </div>
 
     <div class="chartItem">
       <chart-doughnut data="[[datadoughnut]]"></chart-doughnut>
-    <div class="listBloc">
-      <template is="dom-repeat" items="{{datadoughnut}}">
-      <div class="blocItem">
-        <div class="bloc" style="background:{{item.color}}">{{item.value}}</div><div>{{item.label}}</div>
-      </div>
-      </template>
-    </div>      
+
+      <div class="listBloc">
+        <template is="dom-repeat" items="{{datadoughnut}}">
+        <div class="blocItem">
+          <div class="bloc" style="background:{{item.color}}">{{item.value}}</div><div>{{item.label}}</div>
+        </div>
+        </template>
+      </div> 
+
     </div>
 
   </template>
@@ -23090,41 +23092,10 @@ X.prototype.Ze=function(a,b){D("Firebase.resetPassword",1,2,arguments.length);sg
       loadInfos : function() {
 
         if(!this.searchs) {
-
-        this.searchs = [/*
-          {
-            target : 'list',
-            targetList : 'Blue',
-            color : "rgba(81,100,247,0.8)",
-            colorhighlight : "rgba(81,100,247,1)",          
-            colorfade : "rgba(81,100,247,0.1)"
-          },
-          {
-            target : 'list',
-            targetList : 'Black',
-            color : "rgba(62,62,62,0.8)",
-            colorhighlight : "rgba(62,62,62,1)",            
-            colorfade : "rgba(62,62,62,0.1)"
-          },
-          {
-            target : 'list',
-            targetList : 'Jack',
-            color : "rgba(254,115,15,0.8)",
-            colorhighlight : "rgba(254,115,15,1)",              
-            colorfade : "rgba(254,115,15,0.1)"
-          },
-          {
-            target : 'list',
-            targetList : 'Purple',
-            color : "rgba(175,33,149,0.8)",
-            colorhighlight : "rgba(175,33,149,1)",              
-            colorfade : "rgba(175,33,149,0.1)"
-          }*/
-        ];
-
+          this.searchs = [];
         }
 
-        var schedules = [];
+        this.schedules = [];
         var list = [];
 
         this.type = "shift";
@@ -23136,8 +23107,8 @@ X.prototype.Ze=function(a,b){D("Firebase.resetPassword",1,2,arguments.length);sg
         _.each(this.elements, _.bind(function(shift, index) {
 
           if(this.type == 'all') {
-            if(shift && shift.__firebaseKey__ && schedules.indexOf(shift.__firebaseKey__) == -1)  {
-              schedules.push(shift.__firebaseKey__);
+            if(shift && shift.__firebaseKey__ && this.schedules.indexOf(shift.__firebaseKey__) == -1)  {
+              this.schedules.push(shift.__firebaseKey__);
             }
           }
 
@@ -23146,8 +23117,8 @@ X.prototype.Ze=function(a,b){D("Firebase.resetPassword",1,2,arguments.length);sg
 
               if(this.type == 'shift') {
 
-                  if(data && data.schedule && schedules.indexOf(data.schedule) == -1)  {
-                    schedules.push(data.schedule);
+                  if(data && data.schedule && this.schedules.indexOf(data.schedule) == -1)  {
+                    this.schedules.push(data.schedule);
                   }
               } else {
                 data.shift = shift.__firebaseKey__;
@@ -23159,7 +23130,7 @@ X.prototype.Ze=function(a,b){D("Firebase.resetPassword",1,2,arguments.length);sg
 
         },this));
 
-        schedules = _.sortBy(schedules, function(num){ return num; });
+        this.schedules = _.sortBy(this.schedules, function(num){ return num; });
 
         this.datasets = [];
         this.datadoughnutsets = [];
@@ -23168,7 +23139,7 @@ X.prototype.Ze=function(a,b){D("Firebase.resetPassword",1,2,arguments.length);sg
 
           this.datasets.push(this.loadDataItem({
             list : list, 
-            schedules : schedules,
+            schedules : this.schedules,
             target : search.target,
             targetList : search.targetList,
             color : search.color,
@@ -23178,7 +23149,7 @@ X.prototype.Ze=function(a,b){D("Firebase.resetPassword",1,2,arguments.length);sg
 
           this.datadoughnutsets.push(this.loadDataDoughnutItem({
             list : list, 
-            schedules : schedules,
+            schedules : this.schedules,
             target : search.target,
             targetList : search.targetList,
             color : search.color,
@@ -23187,13 +23158,15 @@ X.prototype.Ze=function(a,b){D("Firebase.resetPassword",1,2,arguments.length);sg
           }));
 
         },this))
-/*
-        var labelsschedules = _.map(schedules, function(data, key){
-          return data.replace("-2016", "");
+
+
+        var d = new Date();
+        var labelsschedules = _.map(this.schedules, function(data, key){
+          return data.replace("-"+d.getFullYear(), "");
         });
-*/
+
         this.set('data', {
-          labels: schedules,
+          labels: labelsschedules,
           datasets: this.datasets
         });
 
@@ -23641,16 +23614,16 @@ X.prototype.Ze=function(a,b){D("Firebase.resetPassword",1,2,arguments.length);sg
       }
 
       .selectAll {
-        border-bottom: 2px solid #D4D4D4;
-        color:#888;
-        margin-top: 10px;
-        text-align: center;
-        font-size: 25px;
-        transition: border 0.4s ease;
-        text-transform: uppercase;
-        position: relative;
-        cursor: pointer;
-        margin: 0 10px;
+        border-bottom  : 2px solid #D4D4D4;
+        color          : #888;
+        text-align     : center;
+        font-size      : 25px;
+        transition     : border 0.4s ease;
+        text-transform : uppercase;
+        position       : relative;
+        cursor         : pointer;
+        margin         : 5px 10px 0;
+        display: none;
       }
 
       .selectAll  paper-ripple {
@@ -23670,7 +23643,7 @@ X.prototype.Ze=function(a,b){D("Firebase.resetPassword",1,2,arguments.length);sg
       <div drawer="" class="drawer">
 
         
-        <paper-toolbar id="drawerToolbar"><span class="title">{{shiftdate}}</span><iron-icon on-click="toggleAdmin" icon="communication:vpn-key" class="admin"></iron-icon></paper-toolbar>
+        <paper-toolbar id="drawerToolbar"><span class="title">{{schedule}}</span></paper-toolbar>
         
         
         <paper-menu class="list" attr-for-selected="data-route" selected="{{page}}">
@@ -23706,7 +23679,7 @@ X.prototype.Ze=function(a,b){D("Firebase.resetPassword",1,2,arguments.length);sg
           <span class="flex"></span>
           
           <div class="middle middle-container center horizontal layout flex">
-            <div class="app-name flex">Black Rhino&nbsp;<span>{{page}}</span></div>
+            <div class="app-name flex"><span>{{page}}</span></div>
           </div>
         </paper-toolbar>
 
@@ -23722,7 +23695,7 @@ X.prototype.Ze=function(a,b){D("Firebase.resetPassword",1,2,arguments.length);sg
 
           <paper-tabs scrollable="" id="selectListchedule">
             <template is="dom-repeat" items="{{shifts}}" as="shift">
-                <paper-tab on-click="selectschedule">[[shift.__firebaseKey__]]</paper-tab>
+                <paper-tab on-click="selectschedule">[[getDateText(shift.__firebaseKey__)]]</paper-tab>
             </template>
           </paper-tabs>
 
@@ -23862,6 +23835,10 @@ X.prototype.Ze=function(a,b){D("Firebase.resetPassword",1,2,arguments.length);sg
         }
 
       },
+      getDateText : function(text) {
+        var d = new Date();
+        return text.replace("-"+d.getFullYear(), "");
+      },
       selectschedule : function (event, detail, sender) {
 
         if(event && event.model && event.model.shift) {
@@ -23869,8 +23846,8 @@ X.prototype.Ze=function(a,b){D("Firebase.resetPassword",1,2,arguments.length);sg
           $(this.$.selectAll).removeClass('active');          
         } else {
           var target = "All";
+          this.$.selectListchedule.select("All");          
           $(this.$.selectAll).addClass('active');
-          this.$.selectListchedule.select("All");
         }
 
         if(target != this.schedule) {
@@ -23879,6 +23856,10 @@ X.prototype.Ze=function(a,b){D("Firebase.resetPassword",1,2,arguments.length);sg
           } else {
             this.set('schedule', target);
           }
+        } else {
+          this.set('schedule', null);
+          this.$.selectListchedule.select("All");
+          $(this.$.selectAll).addClass('active');
         }
     
       },

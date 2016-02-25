@@ -295,16 +295,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
 
       .selectAll {
-        border-bottom: 2px solid #D4D4D4;
-        color:#888;
-        margin-top: 10px;
-        text-align: center;
-        font-size: 25px;
-        transition: border 0.4s ease;
-        text-transform: uppercase;
-        position: relative;
-        cursor: pointer;
-        margin: 0 10px;
+        border-bottom  : 2px solid #D4D4D4;
+        color          : #888;
+        text-align     : center;
+        font-size      : 25px;
+        transition     : border 0.4s ease;
+        text-transform : uppercase;
+        position       : relative;
+        cursor         : pointer;
+        margin         : 5px 10px 0;
+        display: none;
       }
 
       .selectAll  paper-ripple {
@@ -324,7 +324,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <div drawer class="drawer">
 
         <!-- Drawer Toolbar -->
-        <paper-toolbar id="drawerToolbar"><span class="title">{{shiftdate}}</span><iron-icon on-click="toggleAdmin" icon="communication:vpn-key" class="admin"></iron-icon></paper-toolbar>
+        <paper-toolbar id="drawerToolbar"><span class="title">{{schedule}}</span></paper-toolbar>
         <!--
          <div class='logo'>
           <img src="../images/touch/icon-128x128.png">
@@ -364,7 +364,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <span class="flex"></span>
           <!-- Application name -->
           <div class="middle middle-container center horizontal layout flex">
-            <div class="app-name flex">Black Rhino&nbsp;<span>{{page}}</span></div>
+            <div class="app-name flex"><span>{{page}}</span></div>
           </div>
         </paper-toolbar>
 
@@ -380,7 +380,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
           <paper-tabs scrollable id="selectListchedule">
             <template is="dom-repeat" items="{{shifts}}" as="shift">
-                <paper-tab on-click="selectschedule" >[[shift.__firebaseKey__]]</paper-tab>
+                <paper-tab on-click="selectschedule" >[[getDateText(shift.__firebaseKey__)]]</paper-tab>
             </template>
           </paper-tabs>
 
@@ -520,6 +520,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }
 
       },
+      getDateText : function(text) {
+        var d = new Date();
+        return text.replace("-"+d.getFullYear(), "");
+      },
       selectschedule : function (event, detail, sender) {
 
         if(event && event.model && event.model.shift) {
@@ -527,8 +531,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           $(this.$.selectAll).removeClass('active');          
         } else {
           var target = "All";
+          this.$.selectListchedule.select("All");          
           $(this.$.selectAll).addClass('active');
-          this.$.selectListchedule.select("All");
         }
 
         if(target != this.schedule) {
@@ -537,6 +541,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           } else {
             this.set('schedule', target);
           }
+        } else {
+          this.set('schedule', null);
+          this.$.selectListchedule.select("All");
+          $(this.$.selectAll).addClass('active');
         }
     
       },

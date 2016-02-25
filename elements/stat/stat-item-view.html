@@ -70,7 +70,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     .bloc{
       height: 25px;
-      width: 25px;
       font-size: 13px;
       display: flex;
       align-items: center;
@@ -78,6 +77,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       color: #FFF;
       float: left;
       margin-right: 5px;
+      padding: 0 10px;
       border-radius: 50%;
     }
 
@@ -92,18 +92,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 
     <div class="chartItem">
-      <chart-line data="[[data]]"></chart-line>
+      <chart-line data="[[data]]" hidden="{{!schedules.length}}"></chart-line>
     </div>
 
     <div class="chartItem">
       <chart-doughnut data="[[datadoughnut]]" ></chart-doughnut>
-    <div class="listBloc">
-      <template is="dom-repeat" items="{{datadoughnut}}" >
-      <div class="blocItem">
-        <div class="bloc" style="background:{{item.color}}" >{{item.value}}</div><div>{{item.label}}</div>
-      </div>
-      </template>
-    </div>      
+
+      <div class="listBloc">
+        <template is="dom-repeat" items="{{datadoughnut}}" >
+        <div class="blocItem">
+          <div class="bloc" style="background:{{item.color}}" >{{item.value}}</div><div>{{item.label}}</div>
+        </div>
+        </template>
+      </div> 
+
     </div>
 
   </template>
@@ -122,41 +124,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       loadInfos : function() {
 
         if(!this.searchs) {
-
-        this.searchs = [/*
-          {
-            target : 'list',
-            targetList : 'Blue',
-            color : "rgba(81,100,247,0.8)",
-            colorhighlight : "rgba(81,100,247,1)",          
-            colorfade : "rgba(81,100,247,0.1)"
-          },
-          {
-            target : 'list',
-            targetList : 'Black',
-            color : "rgba(62,62,62,0.8)",
-            colorhighlight : "rgba(62,62,62,1)",            
-            colorfade : "rgba(62,62,62,0.1)"
-          },
-          {
-            target : 'list',
-            targetList : 'Jack',
-            color : "rgba(254,115,15,0.8)",
-            colorhighlight : "rgba(254,115,15,1)",              
-            colorfade : "rgba(254,115,15,0.1)"
-          },
-          {
-            target : 'list',
-            targetList : 'Purple',
-            color : "rgba(175,33,149,0.8)",
-            colorhighlight : "rgba(175,33,149,1)",              
-            colorfade : "rgba(175,33,149,0.1)"
-          }*/
-        ];
-
+          this.searchs = [];
         }
 
-        var schedules = [];
+        this.schedules = [];
         var list = [];
 
         this.type = "shift";
@@ -168,8 +139,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         _.each(this.elements, _.bind(function(shift, index) {
 
           if(this.type == 'all') {
-            if(shift && shift.__firebaseKey__ && schedules.indexOf(shift.__firebaseKey__) == -1)  {
-              schedules.push(shift.__firebaseKey__);
+            if(shift && shift.__firebaseKey__ && this.schedules.indexOf(shift.__firebaseKey__) == -1)  {
+              this.schedules.push(shift.__firebaseKey__);
             }
           }
 
@@ -178,8 +149,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
               if(this.type == 'shift') {
 
-                  if(data && data.schedule && schedules.indexOf(data.schedule) == -1)  {
-                    schedules.push(data.schedule);
+                  if(data && data.schedule && this.schedules.indexOf(data.schedule) == -1)  {
+                    this.schedules.push(data.schedule);
                   }
               } else {
                 data.shift = shift.__firebaseKey__;
@@ -191,7 +162,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         },this));
 
-        schedules = _.sortBy(schedules, function(num){ return num; });
+        this.schedules = _.sortBy(this.schedules, function(num){ return num; });
 
         this.datasets = [];
         this.datadoughnutsets = [];
@@ -200,7 +171,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
           this.datasets.push(this.loadDataItem({
             list : list, 
-            schedules : schedules,
+            schedules : this.schedules,
             target : search.target,
             targetList : search.targetList,
             color : search.color,
@@ -210,7 +181,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
           this.datadoughnutsets.push(this.loadDataDoughnutItem({
             list : list, 
-            schedules : schedules,
+            schedules : this.schedules,
             target : search.target,
             targetList : search.targetList,
             color : search.color,
@@ -219,13 +190,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           }));
 
         },this))
-/*
-        var labelsschedules = _.map(schedules, function(data, key){
-          return data.replace("-2016", "");
+
+
+        var d = new Date();
+        var labelsschedules = _.map(this.schedules, function(data, key){
+          return data.replace("-"+d.getFullYear(), "");
         });
-*/
+
         this.set('data', {
-          labels: schedules,
+          labels: labelsschedules,
           datasets: this.datasets
         });
 
